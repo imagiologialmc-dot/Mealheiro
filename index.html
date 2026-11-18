@@ -54,9 +54,9 @@
                     </div>
                 </button>
 
-                <!-- Botão Madalena -->
+                <!-- Botão Marlene -->
                 <button onclick="pedirSenhaAdmin()" class="cartoon-btn bg-pink-300 p-4 rounded-xl flex items-center gap-4">
-                    <img src="https://api.dicebear.com/7.x/fun-emoji/svg?seed=Madalena&backgroundColor=ffb6c1" class="w-14 h-14 bg-white rounded-full border-3 border-gray-800">
+                    <img src="https://api.dicebear.com/7.x/fun-emoji/svg?seed=Marlene&backgroundColor=ffb6c1" class="w-14 h-14 bg-white rounded-full border-3 border-gray-800">
                     <div class="text-left">
                         <p class="font-bold text-2xl text-gray-800">Marlene</p>
                         <p class="text-sm text-gray-700 font-medium">Administradora</p>
@@ -66,7 +66,7 @@
         </div>
     </div>
 
-    <!-- MODAL: Senha da Madalena -->
+    <!-- MODAL: Senha da Marlene -->
     <div id="modal-senha" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-[110]">
         <div class="cartoon-box w-full max-w-sm p-6 bg-pink-100 text-center">
             <h2 class="text-2xl font-bold mb-4">Senha de Acesso</h2>
@@ -91,7 +91,7 @@
             ⚙️
         </button>
 
-        <!-- Cabeçalho / Perfil com Botão Dado para a Kelia -->
+        <!-- Cabeçalho / Perfil com Botão Dado para trocar Avatar -->
         <div class="text-center mt-12">
             <div class="relative inline-block">
                 <img id="avatar-img" src="https://api.dicebear.com/7.x/fun-emoji/svg?seed=Kelia&backgroundColor=ffdfbf" 
@@ -101,7 +101,7 @@
                     🎲
                 </button>
             </div>
-            <h1 class="text-3xl font-bold text-gray-800 mt-3" id="nome-crianca">Olá, Kelia!</h1>
+            <h1 class="text-3xl font-bold text-gray-800 mt-3" id="nome-perfil">Olá, Kelia!</h1>
         </div>
 
         <!-- Cartão de Saldo -->
@@ -205,11 +205,12 @@
         const transacoesRef = collection(db, "mesada_transacoes");
         const configRef = doc(db, "mesada_config", "geral");
 
-        let configuracaoAtual = { nome: "Kelia", valorBase: 5000, foto: "" };
+        // Adicionada variável fotoAdmin para guardar a cara escolhida pela Marlene
+        let configuracaoAtual = { nome: "Kelia", valorBase: 5000, foto: "", fotoAdmin: "" };
         let transacoesGlobais = [];
         
         // =============== SISTEMA DE LOGIN ===============
-        const SENHA_MADALENA = "1234"; // Mudar a senha da Madalena aqui
+        const SENHA_MARLENE = "1234"; // Mudar a senha da Marlene aqui se quiseres
         let utilizadorAtual = null;
 
         window.pedirSenhaAdmin = () => {
@@ -219,7 +220,7 @@
 
         window.verificarSenha = () => {
             const digitado = document.getElementById('input-senha').value;
-            if (digitado === SENHA_MADALENA) {
+            if (digitado === SENHA_MARLENE) {
                 fecharModal('modal-senha');
                 entrarComo('admin');
             } else {
@@ -238,6 +239,7 @@
             } else {
                 document.getElementById('app-principal').classList.remove('is-admin');
             }
+            renderizarPerfil();
             renderizarLista();
         };
 
@@ -255,18 +257,35 @@
         }
         // ================================================
 
-        // === NOVA FUNÇÃO PARA A KELIA TROCAR O AVATAR ===
-        window.trocarAvatar = async () => {
-            // Gera um código aleatório para forçar uma nova cara fofa
-            const seedAleatoria = Math.random().toString(36).substring(2, 8);
-            const novaUrl = `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${seedAleatoria}&backgroundColor=ffdfbf`;
+        // === RENDERIZAR O PERFIL CONFORME QUEM ESTÁ LIGADO ===
+        function renderizarPerfil() {
+            if (!configuracaoAtual) return;
             
-            // Guarda na base de dados para sincronizar com a Madalena
-            await setDoc(configRef, { 
-                nome: configuracaoAtual.nome, 
-                valorBase: configuracaoAtual.valorBase, 
-                foto: novaUrl 
-            });
+            const avatarImg = document.getElementById('avatar-img');
+            const nomePerfil = document.getElementById('nome-perfil');
+            
+            if (utilizadorAtual === 'admin') {
+                nomePerfil.textContent = "Olá, Mamã!";
+                avatarImg.src = configuracaoAtual.fotoAdmin || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=Marlene&backgroundColor=ffb6c1`;
+            } else {
+                nomePerfil.textContent = `Olá, ${configuracaoAtual.nome}!`;
+                avatarImg.src = configuracaoAtual.foto || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${configuracaoAtual.nome}&backgroundColor=ffdfbf`;
+            }
+        }
+
+        // === TROCAR AVATAR DINAMICAMENTE ===
+        window.trocarAvatar = async () => {
+            const seedAleatoria = Math.random().toString(36).substring(2, 8);
+            
+            if (utilizadorAtual === 'admin') {
+                // Se for a Marlene a clicar, muda o avatar de admin (fundo rosa)
+                const novaUrl = `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${seedAleatoria}&backgroundColor=ffb6c1`;
+                await setDoc(configRef, { fotoAdmin: novaUrl }, { merge: true });
+            } else {
+                // Se for a Kelia a clicar, muda o avatar normal (fundo amarelo)
+                const novaUrl = `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${seedAleatoria}&backgroundColor=ffdfbf`;
+                await setDoc(configRef, { foto: novaUrl }, { merge: true });
+            }
         };
 
         window.abrirModal = (id) => {
@@ -285,22 +304,17 @@
 
         onSnapshot(configRef, (docSnap) => {
             if (docSnap.exists()) {
-                configuracaoAtual = docSnap.data();
-                document.getElementById('nome-crianca').textContent = `Olá, ${configuracaoAtual.nome}!`;
+                configuracaoAtual = { ...configuracaoAtual, ...docSnap.data() };
                 document.getElementById('config-nome').value = configuracaoAtual.nome;
                 document.getElementById('config-valor').value = configuracaoAtual.valorBase;
-                
-                const avatar = configuracaoAtual.foto || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${configuracaoAtual.nome}&backgroundColor=ffdfbf`;
-                document.getElementById('avatar-img').src = avatar;
+                renderizarPerfil(); // Atualiza o ecrã instantaneamente
             }
         });
 
         window.guardarConfiguracoes = async () => {
             const nome = document.getElementById('config-nome').value || "Kelia";
             const valorBase = parseFloat(document.getElementById('config-valor').value) || 5000;
-            // Mantém a foto atual caso haja uma alteração de nome ou valor
-            const foto = configuracaoAtual.foto; 
-            await setDoc(configRef, { nome, valorBase, foto });
+            await setDoc(configRef, { nome, valorBase }, { merge: true });
             fecharModal('modal-config');
         };
 
@@ -317,8 +331,6 @@
             const lista = document.getElementById('lista-historico');
             lista.innerHTML = '';
             
-            // LÓGICA DE MATEMÁTICA ATUALIZADA:
-            // O saldo arranca sempre com o valor da Mesada Mensal Fixa (5000 Kz)
             let saldo = configuracaoAtual.valorBase;
 
             if (transacoesGlobais.length === 0) {
@@ -329,8 +341,6 @@
 
             transacoesGlobais.forEach(t => {
                 const isEntrada = t.tipo === 'entrada';
-                
-                // Boas ações SOMAM aos 5000. Castigos/Gastos SUBTRAEM aos 5000.
                 saldo += isEntrada ? t.valor : -t.valor;
 
                 const icone = t.descricao.includes('Castigo') ? '💔' : (isEntrada ? '⭐' : '🛍️');
@@ -410,7 +420,6 @@
                     batch.delete(docRef);
                 });
                 await batch.commit();
-                // Apenas apagamos o histórico. Como a matemática baseia-se nos 5000Kz fixos, o saldo reinicia perfeitamente!
             }
         };
     </script>
