@@ -1,0 +1,15 @@
+{
+  "name": "Mealheiro da Kelia",
+  "short_name": "Mealheiro",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#8B5CF6",
+  "theme_color": "#8B5CF6",
+  "icons": [
+    {
+      "src": "https://fonts.gstatic.com/s/e/notoemoji/latest/1fa99/512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
