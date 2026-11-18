@@ -23,7 +23,6 @@
             background-color: #8B5CF6; 
             background-image: radial-gradient(#A78BFA 2px, transparent 2px);
             background-size: 20px 20px;
-            /* Previne o "puxar" da página no telemóvel */
             overscroll-behavior-y: none;
         }
         .cartoon-box {
@@ -270,19 +269,23 @@
         }
         // ================================================
 
-        // === ATUALIZAR OS ECRÃS (MENU E APP) ===
-        function renderizarPerfil() {
-            if (!configuracaoAtual) return;
-            
-            const avatarImg = document.getElementById('avatar-img');
-            const nomePerfil = document.getElementById('nome-perfil');
-            
-            // Garantir que no menu inicial os avatares também ficam sincronizados
+        // === ATUALIZAR OS ECRÃS DE LOGIN E INTERIOR ===
+        function atualizarAvataresLogin() {
             const avatarKeliaLogin = configuracaoAtual.foto || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${configuracaoAtual.nome}&backgroundColor=ffdfbf`;
             const avatarMarleneLogin = configuracaoAtual.fotoAdmin || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=Marlene&backgroundColor=ffb6c1`;
             
             document.getElementById('login-avatar-kelia').src = avatarKeliaLogin;
             document.getElementById('login-avatar-marlene').src = avatarMarleneLogin;
+        }
+
+        function renderizarPerfil() {
+            if (!configuracaoAtual || !utilizadorAtual) return;
+            
+            const avatarImg = document.getElementById('avatar-img');
+            const nomePerfil = document.getElementById('nome-perfil');
+            
+            const avatarKeliaLogin = configuracaoAtual.foto || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${configuracaoAtual.nome}&backgroundColor=ffdfbf`;
+            const avatarMarleneLogin = configuracaoAtual.fotoAdmin || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=Marlene&backgroundColor=ffb6c1`;
 
             if (utilizadorAtual === 'admin') {
                 nomePerfil.textContent = "Olá, Mamã!";
@@ -298,11 +301,9 @@
             const seedAleatoria = Math.random().toString(36).substring(2, 8);
             
             if (utilizadorAtual === 'admin') {
-                // Sincroniza o avatar da Mamã com a cloud
                 const novaUrl = `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${seedAleatoria}&backgroundColor=ffb6c1`;
                 await setDoc(configRef, { fotoAdmin: novaUrl }, { merge: true });
             } else {
-                // Sincroniza o avatar da Kelia com a cloud
                 const novaUrl = `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${seedAleatoria}&backgroundColor=ffdfbf`;
                 await setDoc(configRef, { foto: novaUrl }, { merge: true });
             }
@@ -328,7 +329,11 @@
                 configuracaoAtual = { ...configuracaoAtual, ...docSnap.data() };
                 document.getElementById('config-nome').value = configuracaoAtual.nome;
                 document.getElementById('config-valor').value = configuracaoAtual.valorBase;
-                renderizarPerfil(); // Atualiza a cara na hora se alguém trocar no outro telemóvel!
+                
+                // Atualiza o ecrã de login imediatamente!
+                atualizarAvataresLogin();
+                // Atualiza o interior (se já estiver alguém logado)
+                renderizarPerfil(); 
             }
         });
 
