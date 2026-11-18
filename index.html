@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="pt-AO">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mealheiro da Kelia</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background-color: #8B5CF6; /* Fundo Roxo Divertido */
+            background-image: radial-gradient(#A78BFA 2px, transparent 2px);
+            background-size: 20px 20px;
+        }
+        /* Estilo Cartoon - Brutalismo Fofo */
+        .cartoon-box {
+            background-color: white;
+            border: 4px solid #1F2937;
+            border-radius: 24px;
+            box-shadow: 8px 8px 0px #1F2937;
+        }
+        .cartoon-btn {
+            border: 3px solid #1F2937;
+            box-shadow: 4px 4px 0px #1F2937;
+            transition: all 0.1s ease-in-out;
+        }
+        .cartoon-btn:active {
+            transform: translate(4px, 4px);
+            box-shadow: 0px 0px 0px #1F2937;
+        }
+        /* Esconder scrollbar na lista mas permitir scroll */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Ecrã Principal -->
+    <div class="cartoon-box w-full max-w-md p-6 relative flex flex-col h-[90vh] max-h-[800px]">
+        
+        <!-- Botão Configurações -->
+        <button onclick="abrirModal('modal-config')" class="absolute top-4 right-4 text-2xl cartoon-btn bg-gray-100 w-12 h-12 rounded-full flex items-center justify-center">
+            ??
+        </button>
+
+        <!-- Cabeçalho / Perfil -->
+        <div class="text-center mt-2">
+            <img id="avatar-img" src="https://api.dicebear.com/7.x/fun-emoji/svg?seed=Kelia&backgroundColor=ffdfbf" 
+                 alt="Avatar" class="w-24 h-24 mx-auto bg-yellow-200 border-4 border-gray-800 rounded-full object-cover mb-3">
+            <h1 class="text-3xl font-bold text-gray-800" id="nome-crianca">Olá, Kelia!</h1>
+        </div>
+
+        <!-- Cartão de Saldo -->
+        <div class="bg-yellow-300 border-4 border-gray-800 rounded-2xl p-4 text-center my-6 transform rotate-1">
+            <p class="text-gray-700 font-bold uppercase tracking-wider text-sm mb-1">A Tua Mesada</p>
+            <p class="text-4xl font-bold text-gray-900" id="saldo-display">A carregar...</p>
+        </div>
+
+        <!-- Botões de Ação Rápida -->
+        <div class="grid grid-cols-2 gap-3 mb-6">
+            <button onclick="abrirModal('modal-acao'); document.getElementById('tipo-acao').value = 'bonus'" class="cartoon-btn bg-green-400 text-gray-900 font-bold py-3 px-2 rounded-xl text-sm flex flex-col items-center">
+                <span class="text-2xl mb-1">??</span> Boa Ação (+)
+            </button>
+            <button onclick="adicionarRegisto('Castigo Leve', -100, 'saida')" class="cartoon-btn bg-orange-400 text-gray-900 font-bold py-3 px-2 rounded-xl text-sm flex flex-col items-center">
+                <span class="text-2xl mb-1">??</span> Castigo (-100)
+            </button>
+            <button onclick="adicionarRegisto('Castigo Forte', -200, 'saida')" class="cartoon-btn bg-red-400 text-white font-bold py-3 px-2 rounded-xl text-sm flex flex-col items-center">
+                <span class="text-2xl mb-1">??</span> Castigo (-200)
+            </button>
+            <button onclick="abrirModal('modal-acao'); document.getElementById('tipo-acao').value = 'gasto'" class="cartoon-btn bg-blue-400 text-white font-bold py-3 px-2 rounded-xl text-sm flex flex-col items-center">
+                <span class="text-2xl mb-1">???</span> Gasto (-)
+            </button>
+        </div>
+
+        <!-- Histórico (Rola se houver muitos itens) -->
+        <div class="flex-1 overflow-y-auto no-scrollbar border-t-4 border-dashed border-gray-300 pt-4 pb-20">
+            <h3 class="font-bold text-gray-500 mb-3 text-center uppercase">Últimos Movimentos</h3>
+            <ul id="lista-historico" class="space-y-3">
+                <!-- Preenchido via JS -->
+            </ul>
+        </div>
+
+        <!-- Botão Fechar Mês (Fixo no fundo do cartão) -->
+        <div class="absolute bottom-0 left-0 w-full p-4 bg-white border-t-4 border-gray-800 rounded-b-xl">
+            <button onclick="fecharMes()" class="cartoon-btn w-full bg-purple-500 text-white text-lg font-bold py-3 rounded-xl flex items-center justify-center gap-2">
+                <span>??</span> Fechar Contas (Renovar)
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL: Configurações -->
+    <div id="modal-config" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50">
+        <div class="cartoon-box w-full max-w-sm p-6 bg-pink-100">
+            <h2 class="text-2xl font-bold mb-4 flex items-center gap-2">?? Configurações</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="font-bold text-gray-700">Nome da Criança</label>
+                    <input type="text" id="config-nome" class="w-full border-3 border-gray-800 rounded-xl p-2 font-bold mt-1" value="Kelia">
+                </div>
+                <div>
+                    <label class="font-bold text-gray-700">Mesada Mensal (Kz)</label>
+                    <input type="number" id="config-valor" class="w-full border-3 border-gray-800 rounded-xl p-2 font-bold mt-1" value="5000">
+                </div>
+                <div>
+                    <label class="font-bold text-gray-700">URL da Foto (opcional)</label>
+                    <input type="text" id="config-foto" class="w-full border-3 border-gray-800 rounded-xl p-2 font-bold mt-1 text-sm" placeholder="Deixa vazio para boneco">
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button onclick="fecharModal('modal-config')" class="cartoon-btn flex-1 bg-gray-300 font-bold py-2 rounded-xl">Cancelar</button>
+                <button onclick="guardarConfiguracoes()" class="cartoon-btn flex-1 bg-green-400 font-bold py-2 rounded-xl">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Ação Personalizada (Boa Ação ou Gasto) -->
+    <div id="modal-acao" class="fixed inset-0 bg-black/60 hidden items-center justify-center p-4 z-50">
+        <div class="cartoon-box w-full max-w-sm p-6 bg-blue-100">
+            <h2 class="text-2xl font-bold mb-4" id="titulo-modal-acao">Adicionar Movimento</h2>
+            <input type="hidden" id="tipo-acao">
+            <div class="space-y-4">
+                <div>
+                    <label class="font-bold text-gray-700">O que aconteceu?</label>
+                    <input type="text" id="acao-descricao" class="w-full border-3 border-gray-800 rounded-xl p-2 font-bold mt-1" placeholder="Ex: Arrumou o quarto">
+                </div>
+                <div>
+                    <label class="font-bold text-gray-700">Valor (Kz)</label>
+                    <input type="number" id="acao-valor" class="w-full border-3 border-gray-800 rounded-xl p-2 font-bold mt-1" placeholder="500">
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6">
+                <button onclick="fecharModal('modal-acao')" class="cartoon-btn flex-1 bg-gray-300 font-bold py-2 rounded-xl">Cancelar</button>
+                <button onclick="confirmarAcaoPersonalizada()" class="cartoon-btn flex-1 bg-blue-500 text-white font-bold py-2 rounded-xl">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK Modular -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, query, orderBy, serverTimestamp, setDoc, getDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Credenciais Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyAAGAyM_i2Kr6ynTzuxo2chuA-IAqn6nt4",
+            authDomain: "mesada-ad721.firebaseapp.com",
+            projectId: "mesada-ad721",
+            storageBucket: "mesada-ad721.firebasestorage.app",
+            messagingSenderId: "18131834166",
+            appId: "1:18131834166:web:2928cb8ee30651c9a70f97",
+            measurementId: "G-5ZZBQC31S3"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        const transacoesRef = collection(db, "mesada_transacoes");
+        const configRef = doc(db, "mesada_config", "geral");
+
+        // Nome predefinido atualizado para Kelia
+        let configuracaoAtual = { nome: "Kelia", valorBase: 5000, foto: "" };
+        let transacoesGlobais = [];
+
+        window.abrirModal = (id) => {
+            document.getElementById(id).classList.remove('hidden');
+            document.getElementById(id).classList.add('flex');
+        };
+
+        window.fecharModal = (id) => {
+            document.getElementById(id).classList.add('hidden');
+            document.getElementById(id).classList.remove('flex');
+            if(id === 'modal-acao') {
+                document.getElementById('acao-descricao').value = '';
+                document.getElementById('acao-valor').value = '';
+            }
+        };
+
+        window.formatarKz = (valor) => {
+            return valor.toLocaleString('pt-AO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Kz';
+        };
+
+        onSnapshot(configRef, (docSnap) => {
+            if (docSnap.exists()) {
+                configuracaoAtual = docSnap.data();
+                document.getElementById('nome-crianca').textContent = `Olá, ${configuracaoAtual.nome}!`;
+                document.getElementById('config-nome').value = configuracaoAtual.nome;
+                document.getElementById('config-valor').value = configuracaoAtual.valorBase;
+                
+                const avatar = configuracaoAtual.foto || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${configuracaoAtual.nome}&backgroundColor=ffdfbf`;
+                document.getElementById('avatar-img').src = avatar;
+                document.getElementById('config-foto').value = configuracaoAtual.foto || "";
+            }
+        });
+
+        window.guardarConfiguracoes = async () => {
+            const nome = document.getElementById('config-nome').value || "Kelia";
+            const valorBase = parseFloat(document.getElementById('config-valor').value) || 5000;
+            const foto = document.getElementById('config-foto').value;
+
+            await setDoc(configRef, { nome, valorBase, foto });
+            fecharModal('modal-config');
+        };
+
+        const q = query(transacoesRef, orderBy("timestamp", "desc"));
+        onSnapshot(q, (snapshot) => {
+            const lista = document.getElementById('lista-historico');
+            lista.innerHTML = '';
+            let saldo = 0;
+            transacoesGlobais = [];
+
+            snapshot.forEach((doc) => {
+                transacoesGlobais.push({ id: doc.id, ...doc.data() });
+            });
+
+            if (transacoesGlobais.length === 0) {
+                lista.innerHTML = '<p class="text-center text-gray-400 font-bold mt-4">Nenhum movimento este mês!</p>';
+                document.getElementById('saldo-display').textContent = '0,00 Kz';
+                return;
+            }
+
+            transacoesGlobais.forEach(t => {
+                const isEntrada = t.tipo === 'entrada';
+                saldo += isEntrada ? t.valor : -t.valor;
+
+                const icone = t.descricao.includes('Castigo') ? '??' : (isEntrada ? '?' : '???');
+                const corCard = isEntrada ? 'bg-green-100 border-green-500' : 'bg-red-100 border-red-500';
+                const corTexto = isEntrada ? 'text-green-700' : 'text-red-700';
+                const sinal = isEntrada ? '+' : '-';
+
+                const li = document.createElement('li');
+                li.className = `flex justify-between items-center p-3 rounded-xl border-2 ${corCard}`;
+                li.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-2xl">${icone}</span>
+                        <p class="font-bold text-gray-800 text-sm leading-tight">${t.descricao}</p>
+                    </div>
+                    <div class="flex flex-col items-end">
+                        <span class="font-bold ${corTexto}">${sinal} ${window.formatarKz(t.valor)}</span>
+                        <button onclick="apagarRegisto('${t.id}')" class="text-xs text-gray-500 underline mt-1 hover:text-red-500">Apagar</button>
+                    </div>
+                `;
+                lista.appendChild(li);
+            });
+
+            document.getElementById('saldo-display').textContent = window.formatarKz(saldo);
+        });
+
+        window.adicionarRegisto = async (descricao, valorNum, tipo) => {
+            const valorPositivo = Math.abs(valorNum);
+            await addDoc(transacoesRef, {
+                descricao: descricao,
+                valor: valorPositivo,
+                tipo: tipo,
+                timestamp: serverTimestamp()
+            });
+        };
+
+        window.confirmarAcaoPersonalizada = async () => {
+            const tipoAcao = document.getElementById('tipo-acao').value; 
+            const descricao = document.getElementById('acao-descricao').value;
+            const valor = parseFloat(document.getElementById('acao-valor').value);
+
+            if(!descricao || !valor || valor <= 0) {
+                alert("Preenche a descrição e um valor válido!");
+                return;
+            }
+
+            const tipo = tipoAcao === 'bonus' ? 'entrada' : 'saida';
+            const descFinal = tipoAcao === 'bonus' ? `Boa Ação: ${descricao}` : `Gasto: ${descricao}`;
+
+            await addDoc(transacoesRef, {
+                descricao: descFinal,
+                valor: valor,
+                tipo: tipo,
+                timestamp: serverTimestamp()
+            });
+
+            fecharModal('modal-acao');
+        };
+
+        window.apagarRegisto = async (id) => {
+            if(confirm("Apagar este movimento?")) {
+                await deleteDoc(doc(db, "mesada_transacoes", id));
+            }
+        };
+
+        window.fecharMes = async () => {
+            if(confirm("Isto vai limpar os castigos e boas ações do mês atual e lançar a nova mesada. Tens a certeza?")) {
+                const batch = writeBatch(db);
+                
+                transacoesGlobais.forEach(t => {
+                    const docRef = doc(db, "mesada_transacoes", t.id);
+                    batch.delete(docRef);
+                });
+                await batch.commit();
+
+                await addDoc(transacoesRef, {
+                    descricao: `Mesada Nova (${new Date().toLocaleString('pt-AO', { month: 'long' })})`,
+                    valor: configuracaoAtual.valorBase,
+                    tipo: 'entrada',
+                    timestamp: serverTimestamp()
+                });
+            }
+        };
+    </script>
+</body>
+</html>
