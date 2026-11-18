@@ -3,7 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Configurações para parecer uma App Nativa no Telemóvel -->
     <title>Mealheiro da Kelia</title>
+    <meta name="theme-color" content="#8B5CF6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Mealheiro">
+    
+    <!-- Ícones da App (iOS e Android) -->
+    <link rel="apple-touch-icon" href="https://api.dicebear.com/7.x/fun-emoji/png?seed=Mealheiro&backgroundColor=8b5cf6">
+    <link rel="icon" type="image/png" href="https://api.dicebear.com/7.x/fun-emoji/png?seed=Mealheiro&backgroundColor=8b5cf6">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -12,6 +23,8 @@
             background-color: #8B5CF6; 
             background-image: radial-gradient(#A78BFA 2px, transparent 2px);
             background-size: 20px 20px;
+            /* Previne o "puxar" da página no telemóvel */
+            overscroll-behavior-y: none;
         }
         .cartoon-box {
             background-color: white;
@@ -47,7 +60,7 @@
             <div class="grid gap-4">
                 <!-- Botão Kelia -->
                 <button onclick="entrarComo('kelia')" class="cartoon-btn bg-yellow-300 p-4 rounded-xl flex items-center gap-4">
-                    <img src="https://api.dicebear.com/7.x/fun-emoji/svg?seed=Kelia&backgroundColor=ffdfbf" class="w-14 h-14 bg-white rounded-full border-3 border-gray-800">
+                    <img id="login-avatar-kelia" src="https://api.dicebear.com/7.x/fun-emoji/svg?seed=Kelia&backgroundColor=ffdfbf" class="w-14 h-14 bg-white rounded-full border-3 border-gray-800">
                     <div class="text-left">
                         <p class="font-bold text-2xl text-gray-800">Kelia</p>
                         <p class="text-sm text-gray-700 font-medium">Apenas ver saldo</p>
@@ -56,7 +69,7 @@
 
                 <!-- Botão Marlene -->
                 <button onclick="pedirSenhaAdmin()" class="cartoon-btn bg-pink-300 p-4 rounded-xl flex items-center gap-4">
-                    <img src="https://api.dicebear.com/7.x/fun-emoji/svg?seed=Marlene&backgroundColor=ffb6c1" class="w-14 h-14 bg-white rounded-full border-3 border-gray-800">
+                    <img id="login-avatar-marlene" src="https://api.dicebear.com/7.x/fun-emoji/svg?seed=Marlene&backgroundColor=ffb6c1" class="w-14 h-14 bg-white rounded-full border-3 border-gray-800">
                     <div class="text-left">
                         <p class="font-bold text-2xl text-gray-800">Marlene</p>
                         <p class="text-sm text-gray-700 font-medium">Administradora</p>
@@ -91,11 +104,12 @@
             ⚙️
         </button>
 
-        <!-- Cabeçalho / Perfil com Botão Dado para trocar Avatar -->
+        <!-- Cabeçalho / Perfil -->
         <div class="text-center mt-12">
             <div class="relative inline-block">
                 <img id="avatar-img" src="https://api.dicebear.com/7.x/fun-emoji/svg?seed=Kelia&backgroundColor=ffdfbf" 
                      alt="Avatar" class="w-24 h-24 bg-yellow-200 border-4 border-gray-800 rounded-full object-cover">
+                
                 <!-- Botão de alterar o Emoji -->
                 <button onclick="trocarAvatar()" class="absolute bottom-0 -right-2 bg-white border-2 border-gray-800 rounded-full w-8 h-8 flex items-center justify-center text-sm shadow-[2px_2px_0px_#1F2937] hover:translate-y-px hover:shadow-[1px_1px_0px_#1F2937] transition-all">
                     🎲
@@ -205,12 +219,11 @@
         const transacoesRef = collection(db, "mesada_transacoes");
         const configRef = doc(db, "mesada_config", "geral");
 
-        // Adicionada variável fotoAdmin para guardar a cara escolhida pela Marlene
         let configuracaoAtual = { nome: "Kelia", valorBase: 5000, foto: "", fotoAdmin: "" };
         let transacoesGlobais = [];
         
         // =============== SISTEMA DE LOGIN ===============
-        const SENHA_MARLENE = "1234"; // Mudar a senha da Marlene aqui se quiseres
+        const SENHA_MARLENE = "1234"; // A senha da Mamã continua a ser 1234
         let utilizadorAtual = null;
 
         window.pedirSenhaAdmin = () => {
@@ -257,32 +270,39 @@
         }
         // ================================================
 
-        // === RENDERIZAR O PERFIL CONFORME QUEM ESTÁ LIGADO ===
+        // === ATUALIZAR OS ECRÃS (MENU E APP) ===
         function renderizarPerfil() {
             if (!configuracaoAtual) return;
             
             const avatarImg = document.getElementById('avatar-img');
             const nomePerfil = document.getElementById('nome-perfil');
             
+            // Garantir que no menu inicial os avatares também ficam sincronizados
+            const avatarKeliaLogin = configuracaoAtual.foto || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${configuracaoAtual.nome}&backgroundColor=ffdfbf`;
+            const avatarMarleneLogin = configuracaoAtual.fotoAdmin || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=Marlene&backgroundColor=ffb6c1`;
+            
+            document.getElementById('login-avatar-kelia').src = avatarKeliaLogin;
+            document.getElementById('login-avatar-marlene').src = avatarMarleneLogin;
+
             if (utilizadorAtual === 'admin') {
                 nomePerfil.textContent = "Olá, Mamã!";
-                avatarImg.src = configuracaoAtual.fotoAdmin || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=Marlene&backgroundColor=ffb6c1`;
-            } else {
+                avatarImg.src = avatarMarleneLogin;
+            } else if (utilizadorAtual === 'kelia') {
                 nomePerfil.textContent = `Olá, ${configuracaoAtual.nome}!`;
-                avatarImg.src = configuracaoAtual.foto || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${configuracaoAtual.nome}&backgroundColor=ffdfbf`;
+                avatarImg.src = avatarKeliaLogin;
             }
         }
 
-        // === TROCAR AVATAR DINAMICAMENTE ===
+        // === TROCAR AVATAR NO FIREBASE ===
         window.trocarAvatar = async () => {
             const seedAleatoria = Math.random().toString(36).substring(2, 8);
             
             if (utilizadorAtual === 'admin') {
-                // Se for a Marlene a clicar, muda o avatar de admin (fundo rosa)
+                // Sincroniza o avatar da Mamã com a cloud
                 const novaUrl = `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${seedAleatoria}&backgroundColor=ffb6c1`;
                 await setDoc(configRef, { fotoAdmin: novaUrl }, { merge: true });
             } else {
-                // Se for a Kelia a clicar, muda o avatar normal (fundo amarelo)
+                // Sincroniza o avatar da Kelia com a cloud
                 const novaUrl = `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${seedAleatoria}&backgroundColor=ffdfbf`;
                 await setDoc(configRef, { foto: novaUrl }, { merge: true });
             }
@@ -302,12 +322,13 @@
             return valor.toLocaleString('pt-AO', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' Kz';
         };
 
+        // ESCUTA A BASE DE DADOS EM TEMPO REAL
         onSnapshot(configRef, (docSnap) => {
             if (docSnap.exists()) {
                 configuracaoAtual = { ...configuracaoAtual, ...docSnap.data() };
                 document.getElementById('config-nome').value = configuracaoAtual.nome;
                 document.getElementById('config-valor').value = configuracaoAtual.valorBase;
-                renderizarPerfil(); // Atualiza o ecrã instantaneamente
+                renderizarPerfil(); // Atualiza a cara na hora se alguém trocar no outro telemóvel!
             }
         });
 
