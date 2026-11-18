@@ -11,9 +11,10 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Mealheiro">
     
-    <!-- Ícones da App (iOS e Android) -->
+    <!-- Ícones da App (iOS e Android) - Moeda 🪙 -->
     <link rel="apple-touch-icon" href="https://fonts.gstatic.com/s/e/notoemoji/latest/1fa99/512.png">
     <link rel="icon" type="image/png" href="https://fonts.gstatic.com/s/e/notoemoji/latest/1fa99/512.png">
+    <link rel="manifest" href="manifest.json">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -119,7 +120,7 @@
 
         <!-- Cartão de Saldo -->
         <div class="bg-yellow-300 border-4 border-gray-800 rounded-2xl p-4 text-center my-4 transform rotate-1">
-            <p class="text-gray-700 font-bold uppercase tracking-wider text-sm mb-1">A Tua Mesada</p>
+            <p class="text-gray-700 font-bold uppercase tracking-wider text-sm mb-1" id="titulo-mesada">A Tua Mesada</p>
             <p class="text-4xl font-bold text-gray-900" id="saldo-display">A carregar...</p>
         </div>
 
@@ -283,6 +284,7 @@
             
             const avatarImg = document.getElementById('avatar-img');
             const nomePerfil = document.getElementById('nome-perfil');
+            const tituloMesada = document.getElementById('titulo-mesada'); // Captura o texto da caixa amarela
             
             const avatarKeliaLogin = configuracaoAtual.foto || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=${configuracaoAtual.nome}&backgroundColor=ffdfbf`;
             const avatarMarleneLogin = configuracaoAtual.fotoAdmin || `https://api.dicebear.com/7.x/fun-emoji/svg?seed=Marlene&backgroundColor=ffb6c1`;
@@ -290,9 +292,11 @@
             if (utilizadorAtual === 'admin') {
                 nomePerfil.textContent = "Olá, Mamã!";
                 avatarImg.src = avatarMarleneLogin;
+                tituloMesada.textContent = `Mesada da ${configuracaoAtual.nome}`; // Dinâmico para a Mamã
             } else if (utilizadorAtual === 'kelia') {
                 nomePerfil.textContent = `Olá, ${configuracaoAtual.nome}!`;
                 avatarImg.src = avatarKeliaLogin;
+                tituloMesada.textContent = "A Tua Mesada"; // Mantém o texto para a Kelia
             }
         }
 
@@ -448,6 +452,15 @@
                 await batch.commit();
             }
         };
+    </script>
+    
+    <!-- Registo do Service Worker para o Chrome deixar instalar -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').then(() => {
+                console.log('Motor da App ligado!');
+            });
+        }
     </script>
 </body>
 </html>
